@@ -12,3 +12,99 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+model User {
+  id           Int      @id @default(autoincrement())
+  username     String   @unique
+  fullname     String
+  email        String   @unique
+  avatar       String
+  coverimage   String
+  dob          String?  @default("YYYY-MM-DD")
+  bio          String   @default("")
+  password     String
+  refreshToken String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  //Relationships
+  blogs     Blog[]
+  followers Follow[]   @relation("follower")
+  follows   Follow[]   @relation("author")
+  comments  Comment[]
+  likes     Like[]
+  bookmarks Bookmark[]
+}
+
+model Blog {
+  id          Int      @id @default(autoincrement())
+  thumbnail   String
+  title       String
+  content     String
+  tag         String[]
+  views       Int
+  isPublished Boolean
+  ownerId     Int?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  //Relationships
+  owner     User?      @relation(fields: [ownerId], references: [id])
+  comment   Comment[]
+  likes     Like[]
+  bookmarks Bookmark[]
+}
+
+model Follow {
+  id Int @id @default(autoincrement())
+
+  followerId Int?
+  authorId   Int?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  //Relationships
+  follower User? @relation("follower", fields: [followerId], references: [id])
+  author   User? @relation("author", fields: [authorId], references: [id])
+}
+
+model Comment {
+  id        Int      @id @default(autoincrement())
+  content   String
+  ownerId   Int?
+  blogId    Int?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  likes     Like[]
+
+  //Relationships
+  blog  Blog? @relation(fields: [blogId], references: [id])
+  owner User? @relation(fields: [ownerId], references: [id])
+}
+
+model Like {
+  id        Int      @id @default(autoincrement())
+  likedById Int?
+  commentId Int?
+  blogId    Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  //Relationships
+  comment Comment? @relation(fields: [commentId], references: [id])
+  blog    Blog?    @relation(fields: [blogId], references: [id])
+  likedBy User?    @relation(fields: [likedById], references: [id])
+}
+
+model Bookmark {
+  id Int @id @default(autoincrement())
+
+  bookmarkedBy Int
+  blogId       Int
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  //Relationships
+  blog       Blog @relation(fields: [blogId], references: [id])
+  bookmarked User @relation(fields: [bookmarkedBy], references: [id])
+}
