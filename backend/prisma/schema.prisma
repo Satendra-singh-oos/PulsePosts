@@ -19,7 +19,7 @@ model User {
   fullname     String
   email        String   @unique
   avatar       String
-  coverimage   String
+  coverImage   String
   dob          String?  @default("YYYY-MM-DD")
   bio          String   @default("")
   password     String
