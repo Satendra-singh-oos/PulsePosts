@@ -43,7 +43,7 @@ model Blog {
   content     String
   tag         String[]
   views       Int
-  isPublished Boolean
+  isPublished Boolean  @default(true)
   ownerId     Int?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt

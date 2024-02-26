@@ -335,6 +335,7 @@ const updateUserAccountDetails = asyncHandler(async (req, res) => {
       },
       data: {
         email: userData.email,
+        updatedAt: new Date(),
       },
       select: {
         id: true,
