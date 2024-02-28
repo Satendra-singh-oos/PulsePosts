@@ -40,7 +40,7 @@ const toggleBlogLike = asyncHandler(async (req, res) => {
       await prisma.like.create({
         data: {
           blogId: blogId,
-          likedByIdl: userId,
+          likedById: userId,
         },
       });
 

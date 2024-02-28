@@ -49,7 +49,8 @@ import userRouter from "./routes/users.routes.js";
 import blogRouter from "./routes/blogs.routes.js";
 import followRouter from "./routes/follows.routes.js";
 import likesRouter from "./routes/likes.routes.js";
-import bookmarkRouter from "./routes/bookmarks.routes.js";
+import bookmarksRouter from "./routes/bookmarks.routes.js";
+import commentsRouter from "./routes/comments.routes.js";
 
 app.use("/api/v1/healthcheck", healthcheckRouter);
 
@@ -57,6 +58,7 @@ app.use("/api/v1/users", userRouter);
 app.use("/api/v1/blogs", blogRouter);
 app.use("/api/v1/follows", followRouter);
 app.use("/api/v1/likes", likesRouter);
-app.use("/api/v1/bookmarks", bookmarkRouter);
+app.use("/api/v1/bookmarks", bookmarksRouter);
+app.use("/api/v1/comments", commentsRouter);
 
 export { app };
