@@ -3,6 +3,7 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import { rateLimit } from "express-rate-limit";
 import requestIp from "request-ip";
+import { ApiError } from "./utils/ApiError.js";
 
 const app = express();
 
@@ -47,12 +48,15 @@ import healthcheckRouter from "./routes/healthcheck.routes.js";
 import userRouter from "./routes/users.routes.js";
 import blogRouter from "./routes/blogs.routes.js";
 import followRouter from "./routes/follows.routes.js";
-import { ApiError } from "./utils/ApiError.js";
+import likesRouter from "./routes/likes.routes.js";
+import bookmarkRouter from "./routes/bookmarks.routes.js";
 
 app.use("/api/v1/healthcheck", healthcheckRouter);
 
 app.use("/api/v1/users", userRouter);
 app.use("/api/v1/blogs", blogRouter);
 app.use("/api/v1/follows", followRouter);
+app.use("/api/v1/likes", likesRouter);
+app.use("/api/v1/bookmarks", bookmarkRouter);
 
 export { app };
