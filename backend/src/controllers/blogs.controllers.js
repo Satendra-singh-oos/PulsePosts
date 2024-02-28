@@ -321,7 +321,7 @@ const getBlogById = asyncHandler(async (req, res) => {
   }
 });
 
-const getPostsByTag = asyncHandler(async (req, res) => {
+const getBlogsByTag = asyncHandler(async (req, res) => {
   try {
     const { page = 1, limit = 10 } = req.query;
     const { tag } = req.params;
@@ -408,6 +408,6 @@ export {
   getMyBlogs,
   getBookMarkedPosts,
   getBlogById,
-  getPostsByTag,
+  getBlogsByTag,
   togglePublishStatus,
 };
