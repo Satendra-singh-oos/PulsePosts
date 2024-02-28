@@ -148,7 +148,7 @@ const updateBlog = asyncHandler(async (req, res) => {
 const deleteBlog = asyncHandler(async (req, res) => {
   try {
     const userId = req.user?.id;
-    const blogId = parseInt(req.params.blogId, 10);
+    const blogId = parseInt(req.params, 10);
 
     const blog = await prisma.blog.findFirst({
       where: {
@@ -301,7 +301,7 @@ const getBookMarkedPosts = asyncHandler(async (req, res) => {
 
 const getBlogById = asyncHandler(async (req, res) => {
   try {
-    const blogId = parseInt(req.params.blogId, 10);
+    const blogId = parseInt(req.params, 10);
 
     const blog = await prisma.blog.findFirst({
       where: {
