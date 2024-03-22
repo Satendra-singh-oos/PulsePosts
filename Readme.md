@@ -1,4 +1,8 @@
-# A Scalable full-stack application.
+
+# 🚧🚨 PROJECT IS STILL UNDER-Construction 🚨🚧
+
+
+## A Scalable full-stack application.
 
 - It is a blog application
 
