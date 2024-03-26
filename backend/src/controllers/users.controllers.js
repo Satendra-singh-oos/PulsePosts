@@ -58,6 +58,12 @@ const genrateAccessAndRefreshToken = async (userId) => {
 };
 
 const registerUser = asyncHandler(async (req, res) => {
+  /*
+   1->get data from  frontend
+   2->get image from frontend
+   3->check dose the email exist or userName  throw err if they exist
+   4->then create the  user and send the response
+  */
   try {
     // validating user data
     const userData = await registerUserSchemaValidation.parse(req.body);
@@ -73,7 +79,11 @@ const registerUser = asyncHandler(async (req, res) => {
     const checkEmailExists = await prisma.user.findFirst({
       where: {
         email: userData.email,
-        username: userData.username,
+        OR: [
+          {
+            username: userData.username,
+          },
+        ],
       },
     });
 
@@ -119,6 +129,15 @@ const registerUser = asyncHandler(async (req, res) => {
 });
 
 const loginUser = asyncHandler(async (req, res) => {
+  /*
+  
+  1-> get the data email and password
+  2-> check the password is correct
+  3-> if password correct then genrate access and refresh token
+  4->then login the user succesfuly and send response 
+  5->while in reposne set the cokkies 
+  
+  */
   try {
     const userData = await loginUserSchemaValidation.parse(req.body);
 
@@ -184,6 +203,13 @@ const loginUser = asyncHandler(async (req, res) => {
 });
 
 const refreshAccessToken = asyncHandler(async (req, res) => {
+  /*
+   1-> refresh the acces tokken
+   2-> check the id of the old refresh token
+   3-> genrate the new refresh token
+   4-> send the responseand set the cokkies
+  
+  */
   try {
     const incomingRefreshToken =
       req.cookies?.refreshToken ||
@@ -245,6 +271,11 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
 });
 
 const logoutUser = asyncHandler(async (req, res) => {
+  /*
+
+  1-> logout just clear the cookie of the user 
+  
+  */
   try {
     const userId = req.user?.id;
 
@@ -264,6 +295,13 @@ const logoutUser = asyncHandler(async (req, res) => {
 });
 
 const changeCurrentPassword = asyncHandler(async (req, res) => {
+  /*
+   1-> for change the password check the user id from token
+   2-> get the password from the forntend and and check it with the database password
+   3-> hashthe new password
+   4-> save it in the db
+   5-> send the response
+  */
   try {
     const userId = req.user?.id;
     const passwordData = passwordValidation.parse(req.bdoy);
@@ -324,6 +362,12 @@ const getCurrentUser = asyncHandler(async (req, res) => {
 });
 
 const updateUserAccountDetails = asyncHandler(async (req, res) => {
+  /*
+  
+    1-> get the data from frontend and update the details with the db
+    2-> check the user exist in db if yes then update the details
+    3-> send the response
+  */
   try {
     const userId = req.user?.id;
 
@@ -362,6 +406,13 @@ const updateUserAccountDetails = asyncHandler(async (req, res) => {
 });
 
 const updateUserAvatar = asyncHandler(async (req, res) => {
+  /*
+  1-> find the userId from the middleware
+  2-> get the oldAvatar from the userData
+  3-> update the avatar to the in cloudnairy then save the updated url in the db
+  4-> after succesfully update the avatar delte the old avatar form cloudnairy strogae
+  5-> send the response
+  */
   try {
     const userId = req.user?.id;
 

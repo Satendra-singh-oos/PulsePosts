@@ -1,3 +1,5 @@
+# 🚧🚨 PROJECT IS STILL UNDER-CONSTRUCTION 🚨🚧
+
 # A Scalable full-stack application.
 
 - It is a blog application
@@ -32,7 +34,7 @@ After sign-in:
 ## Reading Blog Architecture:
 
 - For caching, I will go with Redis.
-- For message queue, I will go with BullMQ
+- For message queue, I will go with BullMQ/Apache Kafka
 
 When we have cache-miss, our job is to write that data into the cache. We do it asynchronously since it is non-critical task
 

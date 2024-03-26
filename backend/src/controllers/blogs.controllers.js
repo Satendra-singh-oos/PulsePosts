@@ -11,7 +11,15 @@ import {
   updateBlogSchemaValidation,
 } from "../validations/blogs.validations";
 
+//TODO:EXTRA API MADE REDUCE THOSE
+
 const publishBlog = asyncHandler(async (req, res) => {
+  /*
+   1)Get the data from the frontend 
+   2) upload the thumbanil of blog to cloudnairy
+   3)  crate the blog and send the response 
+  
+  */
   try {
     const userId = req.user?.id;
     const userData = blogSchemaValidation.parse(req.body);
@@ -60,7 +68,7 @@ const updateBlog = asyncHandler(async (req, res) => {
     /*
     1)  get userId , get blogId    
     2)  search that blogId if not there throw err check current userID is owner of blogId
-    3)  allow to update the blpg title,content,thumbnail
+    3)  allow to update the blog title,content,thumbnail,tag
     */
 
     const userId = req.user?.id;
@@ -146,6 +154,12 @@ const updateBlog = asyncHandler(async (req, res) => {
 });
 
 const deleteBlog = asyncHandler(async (req, res) => {
+  /*
+  1-> get the blog id and ownerId
+  2-> match the ownerId with userId
+  3-> first delte the image from cloudnairy
+  4-> deltet the user form the db and send repsonse
+  */
   try {
     const userId = req.user?.id;
     const blogId = parseInt(req.params, 10);
@@ -189,7 +203,7 @@ const deleteBlog = asyncHandler(async (req, res) => {
 
 const getAllBlogs = asyncHandler(async (req, res) => {
   try {
-    const { page = 1, limit = 10 } = rqe.query;
+    const { page = 1, limit = 10 } = req.query;
     const allBlogs = await prisma.blog.findMany({
       where: {
         isPublished: true,

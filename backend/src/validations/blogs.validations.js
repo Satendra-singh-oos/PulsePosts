@@ -8,8 +8,8 @@ const blogSchemaValidation = z.object({
   content: z
     .string()
     .min(10, { message: "Blog Content Must be of 10 char" })
-    .max(5000, { message: "Blog Content Cannot be greater then 5000 char" })
-    .regex(/^[a-zA-Z0-9@#$5^&*()!\p{Emoji}]+$/u),
+    .max(5000, { message: "Blog Content Cannot be greater then 5000 char" }),
+  // .regex(/^[a-zA-Z0-9@#$5^&*()!\p{Emoji}]+$/u),
 
   tag: z
     .array(z.string())
