@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { upload } from "../middlewares/multer.middlewares";
+import { upload } from "../middlewares/multer.middlewares.js";
 import {
   changeCurrentPassword,
   getCurrentUser,
@@ -10,8 +10,8 @@ import {
   updateUserAccountDetails,
   updateUserAvatar,
   updateUserCoverImage,
-} from "../controllers/users.controllers";
-import { verifyJwt } from "../middlewares/auth.middleware";
+} from "../controllers/users.controllers.js";
+import { verifyJwt } from "../middlewares/auth.middleware.js";
 
 const router = Router();
 
@@ -38,6 +38,6 @@ router
 
 router
   .route("/update-coverImage")
-  .patch(verifyJwt, upload.single("avatar"), updateUserCoverImage);
+  .patch(verifyJwt, upload.single("coverImage"), updateUserCoverImage);
 
 export default router;

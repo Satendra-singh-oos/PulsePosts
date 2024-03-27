@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { verifyJwt } from "../middlewares/auth.middleware";
+import { verifyJwt } from "../middlewares/auth.middleware.js";
 import {
   publishBlog,
   updateBlog,
@@ -11,8 +11,8 @@ import {
   getBlogById,
   getBlogsByTag,
   togglePublishStatus,
-} from "../controllers/blogs.controllers";
-import { upload } from "../middlewares/multer.middlewares";
+} from "../controllers/blogs.controllers.js";
+import { upload } from "../middlewares/multer.middlewares.js";
 
 const router = Router();
 // router.use(verifyJwt);

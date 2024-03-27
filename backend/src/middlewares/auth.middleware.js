@@ -1,7 +1,7 @@
 import jwt from "jsonwebtoken";
-import { asyncHandler } from "../utils/asyncHandler";
-import { ApiError } from "../utils/ApiError";
-import prisma from "../../prisma/prisma";
+import { asyncHandler } from "../utils/asyncHandler.js";
+import { ApiError } from "../utils/ApiError.js";
+import prisma from "../../prisma/prisma.js";
 
 export const verifyJwt = asyncHandler(async (req, res, next) => {
   try {
@@ -33,7 +33,7 @@ export const verifyJwt = asyncHandler(async (req, res, next) => {
         updatedAt: true,
       },
     });
-    if (!findUser) {
+    if (!user) {
       throw new ApiError(405, "Invaled Access Token");
     }
 

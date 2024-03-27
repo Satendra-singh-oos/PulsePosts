@@ -1,8 +1,8 @@
-import prisma from "../../prisma/prisma";
-import { ApiError } from "../utils/ApiError";
-import { ApiResponse } from "../utils/ApiResponse";
-import { asyncHandler } from "../utils/asyncHandler";
-import { commentSchemaValidation } from "../validations/comment.validation";
+import prisma from "../../prisma/prisma.js";
+import { ApiError } from "../utils/ApiError.js";
+import { ApiResponse } from "../utils/ApiResponse.js";
+import { asyncHandler } from "../utils/asyncHandler.js";
+import { commentSchemaValidation } from "../validations/comment.validation.js";
 
 const addCommnet = asyncHandler(async (req, res) => {
   try {

@@ -1,17 +1,17 @@
-import prisma from "../../prisma/prisma";
-import { ApiError } from "../utils/ApiError";
-import { ApiResponse } from "../utils/ApiResponse";
-import { asyncHandler } from "../utils/asyncHandler";
+import prisma from "../../prisma/prisma.js";
+import { ApiError } from "../utils/ApiError.js";
+import { ApiResponse } from "../utils/ApiResponse.js";
+import { asyncHandler } from "../utils/asyncHandler.js";
 import {
   deleteFileOnCloudinary,
   uploadOnCloudinary,
-} from "../utils/cloudinary";
+} from "../utils/cloudinary.js";
 import {
   blogSchemaValidation,
   updateBlogSchemaValidation,
-} from "../validations/blogs.validations";
+} from "../validations/blogs.validations.js";
 
-//TODO:EXTRA API MADE REDUCE THOSE
+//TODO:EXTRA API MADE REDUCE THOSE GETTALL  BLOG
 
 const publishBlog = asyncHandler(async (req, res) => {
   /*

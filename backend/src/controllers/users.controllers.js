@@ -124,6 +124,7 @@ const registerUser = asyncHandler(async (req, res) => {
       .status(200)
       .json(new ApiResponse(200, newUser, "Succesfully Account Created"));
   } catch (error) {
+    console.log(error);
     throw new ApiError(500, error?.message);
   }
 });
@@ -152,8 +153,8 @@ const loginUser = asyncHandler(async (req, res) => {
     }
 
     const isPasswordCorrect = await bcrypt.compare(
-      user.password,
-      userData.password
+      userData.password,
+      user.password
     );
 
     if (!isPasswordCorrect) {
@@ -286,7 +287,7 @@ const logoutUser = asyncHandler(async (req, res) => {
 
     return res
       .status(200)
-      .clearCookie("accesToken", options)
+      .clearCookie("accessToken", options)
       .clearCookie("refreshToken", options)
       .json(new ApiResponse(200, {}, "User Logout SuccesFully"));
   } catch (error) {
@@ -304,7 +305,8 @@ const changeCurrentPassword = asyncHandler(async (req, res) => {
   */
   try {
     const userId = req.user?.id;
-    const passwordData = passwordValidation.parse(req.bdoy);
+
+    const passwordData = await passwordValidation.parse(req.body);
 
     const user = await prisma.user.findFirst({
       where: {
@@ -317,8 +319,8 @@ const changeCurrentPassword = asyncHandler(async (req, res) => {
     }
 
     const isOldPasswordCorrect = await bcrypt.compare(
-      user.password,
-      passwordData.oldPassword
+      passwordData.oldPassword,
+      user.password
     );
 
     if (!isOldPasswordCorrect) {
@@ -469,6 +471,7 @@ const updateUserAvatar = asyncHandler(async (req, res) => {
         new ApiResponse(200, updatedUser, "Succesfully updated the avatar")
       );
   } catch (error) {
+    console.log(error);
     throw new ApiError(200, error?.message);
   }
 });
@@ -507,7 +510,7 @@ const updateUserCoverImage = asyncHandler(async (req, res) => {
         id: userId,
       },
       data: {
-        coverImage: coverImage,
+        coverImage: coverImage.url,
       },
       select: {
         id: true,

@@ -1,11 +1,11 @@
 import { Router } from "express";
 
-import { verifyJwt } from "../middlewares/auth.middleware";
+import { verifyJwt } from "../middlewares/auth.middleware.js";
 import {
   getUserFollowerList,
   getUserFollowingList,
   toggleFollow,
-} from "../controllers/follows.controllers";
+} from "../controllers/follows.controllers.js";
 
 const router = Router();
 

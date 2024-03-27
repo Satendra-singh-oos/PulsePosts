@@ -36,6 +36,8 @@ const deleteFileOnCloudinary = async (cloudinaryUrl, resource_type) => {
     const response = await cloudinary.uploader.destroy(public_id, {
       resource_type: resource_type,
     });
+
+    return response;
   } catch (error) {
     console.log(error);
     return null;

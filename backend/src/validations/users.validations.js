@@ -3,14 +3,16 @@ const registerUserSchemaValidation = z.object({
   username: z
     .string()
     .min(3, { message: "Username Must be 5 or more characters long" })
-    .max(25, { message: "Must be less then 25  characters " }),
+    .max(25, { message: "Must be less then 25  characters " })
+    .trim(),
 
   fullname: z
     .string()
     .min(3, { message: "Fullname Must be 5 or more characters long" })
-    .max(25, { message: "Must be less then 25  characters " }),
+    .max(25, { message: "Must be less then 25  characters " })
+    .trim(),
 
-  email: z.string().email({ message: "Invalid  Email address" }),
+  email: z.string().email({ message: "Invalid  Email address" }).trim(),
 
   //   avatar: z.string(),
   //   coverImage: z.string().optional(),

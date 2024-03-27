@@ -11,11 +11,13 @@ const blogSchemaValidation = z.object({
     .max(5000, { message: "Blog Content Cannot be greater then 5000 char" }),
   // .regex(/^[a-zA-Z0-9@#$5^&*()!\p{Emoji}]+$/u),
 
-  tag: z
-    .array(z.string())
-    .min(3, { message: "Tag Should be minium of 3 character" })
-    .max(10, { message: "Tag Cannot be more then 10 character" })
-    .regex(/^[a-zA-Z0-9-]+$/),
+  tag: z.array(
+    z
+      .string()
+      .min(3, { message: "Tag Should be minium of 3 character" })
+      .max(10, { message: "Tag Cannot be more then 10 character" })
+      .regex(/^[a-zA-Z0-9-]+$/)
+  ),
 
   isPublished: z.boolean().optional(),
 });
@@ -34,12 +36,14 @@ const updateBlogSchemaValidation = z.object({
     .regex(/^[a-zA-Z0-9@#$5^&*()!\p{Emoji}]+$/u)
     .optional(),
 
-  tag: z
-    .array(z.string())
-    .min(3, { message: "Tag Should be minium of 3 character" })
-    .max(10, { message: "Tag Cannot be more then 10 character" })
-    .regex(/^[a-zA-Z0-9-]+$/)
-    .optional(),
+  tag: z.array(
+    z
+      .string()
+      .min(3, { message: "Tag Should be minium of 3 character" })
+      .max(10, { message: "Tag Cannot be more then 10 character" })
+      .regex(/^[a-zA-Z0-9-]+$/)
+      .optional()
+  ),
 
   isPublished: z.boolean().optional(),
 });

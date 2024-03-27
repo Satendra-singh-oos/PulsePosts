@@ -23,7 +23,7 @@ model User {
   dob          String?  @default("YYYY-MM-DD")
   bio          String   @default("")
   password     String
-  refreshToken String
+  refreshToken String?  @default("")
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
