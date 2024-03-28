@@ -9,7 +9,6 @@ import {
   getMyBlogs,
   getBookMarkedPosts,
   getBlogById,
-  getBlogsByTag,
   togglePublishStatus,
 } from "../controllers/blogs.controllers.js";
 import { upload } from "../middlewares/multer.middlewares.js";
@@ -18,12 +17,13 @@ const router = Router();
 // router.use(verifyJwt);
 
 router.route("/").get(getAllBlogs);
-router.route("/get/t/:tag").get(getBlogsByTag);
 
 router.route("/get/u/:username").get(getAllBlogsByUsername);
 
 // restricted route
-router.route("/").post(verifyJwt, upload.single("thumbnail"), publishBlog);
+router
+  .route("/publish-blog")
+  .post(verifyJwt, upload.single("thumbnail"), publishBlog);
 router
   .route("/:blogId")
   .get(verifyJwt, getBlogById)

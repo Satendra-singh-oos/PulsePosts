@@ -4,102 +4,127 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 
 const toggleFollow = asyncHandler(async (req, res) => {
+  /*
+   1- get user id from the req.user and author id from the params
+   2- no check dose bhot exist in db then unfllow
+   3- if not then create new and add in db
+   4- return the resposne
+  */
   try {
+    const { pageId } = req.params;
     const userId = req.user?.id;
-    const { authorId } = parseInt(req.params, 10);
 
-    // check if user alredy toBeFollowedUserId exists
-    const toBeFollowed = await prisma.user.findFirst({
+    const authorId = parseInt(pageId, 10);
+
+    if (isNaN(authorId)) {
+      // Handle invalid input (pageId is not a valid integer string)
+      throw new ApiError(405, "No A Valid PageId");
+    }
+
+    const isUserFollow = await prisma.follow.findFirst({
       where: {
-        id: authorId,
+        AND: [{ followerId: userId }, { authorId: authorId }],
       },
     });
 
-    if (!toBeFollowed) {
-      throw new ApiError(404, "User Not Found");
+    if (isUserFollow) {
+      // didn't use delete methord cause it want id as one of it's parmeter to delte the row
+      await prisma.follow.deleteMany({
+        where: {
+          AND: [{ authorId: authorId }, { followerId: userId }],
+        },
+      });
+
+      return res.status(200).json(
+        new ApiResponse(
+          200,
+          {
+            isFollow: false,
+          },
+          "UnFollowed The Author"
+        )
+      );
     }
 
-    //  Check of the user who is being followed is not the one who is requesting
-    if (authorId === userId) {
-      throw new ApiError(422, "You Cannot follow yourself ");
-    }
-
-    //check if the user is already following the to bed followed user
-    const isAlreadyFolllowing = await prisma.follow.findFirst({
-      where: {
+    await prisma.follow.create({
+      data: {
         followerId: userId,
         authorId: authorId,
       },
     });
 
-    if (isAlreadyFolllowing) {
-      await prisma.follow.delete({
-        where: {
-          followerId: userId,
-          authorId: authorId,
+    return res.status(200).json(
+      new ApiResponse(
+        200,
+        {
+          isFollow: true,
         },
-      });
-
-      return res.status(200).json(
-        new ApiResponse(
-          200,
-          {
-            following: false,
-          },
-          "Un-Followed author Succesfuly"
-        )
-      );
-    } else {
-      await prisma.follow.create({
-        data: {
-          followerId: userId,
-          authorId: authorId,
-        },
-      });
-
-      return res.status(200).json(
-        new ApiResponse(
-          200,
-          {
-            following: true,
-          },
-          "Followed Author Succesfuly"
-        )
-      );
-    }
+        "Followed The Author"
+      )
+    );
   } catch (error) {
     throw new ApiError(500, error?.message);
   }
 });
 
 const getUserFollowerList = asyncHandler(async (req, res) => {
+  /*
+ Return The List of follower
+ - total follower count
+ - 
+*/
   try {
     const userId = req.user?.id;
+    const { pageId } = req.params;
+    const authorId = parseInt(pageId, 10);
 
     const followerList = await prisma.follow.findMany({
       where: {
-        authorId: userId,
+        authorId: authorId,
+      },
+      include: {
+        author: true,
+        follower: {
+          select: {
+            id: true,
+            username: true,
+            fullname: true,
+            avatar: true,
+            followers: true,
+          },
+        },
       },
     });
-    // const followerList = await prisma.user.findFirst({
-    //   where: {
-    //     id: userId,
-    //   },
-    //   select: {
-    //     follows: {
-    //       where: {
-    //         authorId: userId,
-    //       },
-    //     },
-    //   },
-    // });
+
+    // Perform post-processing to calculate isCurrentUserFollow and totalFollowers for each follower
+    const formattedFollowers = followerList.map(({ id, follower, author }) => {
+      const isCurrentUserFollow = follower.followers.some(
+        (follow) => follow.authorId === userId
+      );
+
+      const totalFollowers = follower.followers.length;
+
+      return {
+        id: id,
+        author: author.id,
+        authorName: author.username,
+        follower: {
+          id: follower.id,
+          username: follower.username,
+          fullname: follower.fullname,
+          avatar: follower.avatar,
+          isCurrentUserFollow: isCurrentUserFollow,
+          totalFollowers: totalFollowers,
+        },
+      };
+    });
 
     return res
       .status(200)
       .json(
         new ApiResponse(
           200,
-          followerList,
+          formattedFollowers,
           "Fetched All Subscriber List of the authro"
         )
       );
@@ -108,14 +133,38 @@ const getUserFollowerList = asyncHandler(async (req, res) => {
   }
 });
 
-const getUserFollowingList = asyncHandler(async (rqe, res) => {
+const getUserFollowingList = asyncHandler(async (req, res) => {
   try {
     const userId = req.user?.id;
+    const { followerId } = req.params;
+    const subscriberId = parseInt(followerId, 10);
 
-    const followingList = await prisma.follow.findFirst({
+    const followingList = await prisma.follow.findMany({
       where: {
-        followerId: userId,
+        followerId: subscriberId,
       },
+      include: {
+        author: {
+          select: {
+            id: true,
+            username: true,
+            fullname: true,
+            avatar: true,
+          },
+        },
+      },
+    });
+
+    const formattedFollow = followingList.map(({ id, author }) => {
+      return {
+        id: id,
+        author: {
+          id: author.id,
+          username: author.username,
+          fullname: author.username,
+          avatar: author.avatar,
+        },
+      };
     });
 
     return res
@@ -123,11 +172,12 @@ const getUserFollowingList = asyncHandler(async (rqe, res) => {
       .json(
         new ApiResponse(
           200,
-          followingList,
+          formattedFollow,
           "Fetched All the followed author list of your"
         )
       );
   } catch (error) {
+    console.log(error);
     throw new ApiError(500, error?.message);
   }
 });

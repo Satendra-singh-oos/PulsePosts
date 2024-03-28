@@ -41,8 +41,7 @@ model Blog {
   thumbnail   String
   title       String
   content     String
-  tag         String[]
-  views       Int
+  views       Int?     @default(0)
   isPublished Boolean  @default(true)
   ownerId     Int?
   createdAt   DateTime @default(now())

@@ -546,6 +546,29 @@ const updateUserCoverImage = asyncHandler(async (req, res) => {
   }
 });
 
+const getUserProfile = asyncHandler(async (req, res) => {
+  try {
+    /*
+      Step 1: Get the username from the request parameters
+      Step 2: Validate if the username is provided
+      Step 3: Aggregate query to fetch user channel profile
+      Step 4: Lookup subscribers and subscribedTo information using the 'subscription' collection
+      Step 5: Add additional fields like subscriberCount, channelSubscribedToCount, and isSubscribed
+      Step 6: Project only the necessary fields
+      Step 7: Validate if the channel exists
+     Step 8: Send the response with the fetched user channel data
+    */
+
+    const { username } = req.params;
+    if (!username.trim()) {
+      throw new ApiError(400, "username is missing");
+    }
+    //TODO: LEFT THE API
+  } catch (error) {
+    throw new ApiError(500, error?.message);
+  }
+});
+
 //TODO: get User Profile Withe total followers and all that thing will add if requried in forntend
 
 export {
@@ -558,4 +581,5 @@ export {
   updateUserAccountDetails,
   updateUserAvatar,
   updateUserCoverImage,
+  getUserProfile,
 };

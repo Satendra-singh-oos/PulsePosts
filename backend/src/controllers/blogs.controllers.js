@@ -22,11 +22,11 @@ const publishBlog = asyncHandler(async (req, res) => {
   */
   try {
     const userId = req.user?.id;
-    const userData = blogSchemaValidation.parse(req.body);
+
+    const userData = await blogSchemaValidation.parse(req.body);
 
     const { title, content, tag } = userData;
-    const thumbnailLocalPath =
-      req.files?.thumbnail && req.files?.thumbnail[0]?.path;
+    const thumbnailLocalPath = req.file?.path;
 
     if (!thumbnailLocalPath) {
       throw new ApiError(400, "Thumbnail are required to publish a blog");
@@ -38,11 +38,12 @@ const publishBlog = asyncHandler(async (req, res) => {
       throw new ApiError(404, "Something Went Wrong ON Uplaoding Thumbnail");
     }
 
+    console.log(tag);
+
     const newBlog = await prisma.blog.create({
       data: {
         title,
         content,
-        tag,
         thumbnail: thumbnail.url,
         ownerId: userId,
       },
@@ -72,13 +73,9 @@ const updateBlog = asyncHandler(async (req, res) => {
     */
 
     const userId = req.user?.id;
-    const {
-      content,
-      title,
-      tag: newTags,
-    } = updateBlogSchemaValidation.parse(req.body);
+    const { content, title } = updateBlogSchemaValidation.parse(req.body);
 
-    const blogId = parseInt(req.params.blogId, 10);
+    const blogId = parseInt(req.params.blogId);
 
     const blog = await prisma.blog.findFirst({
       where: {
@@ -91,12 +88,7 @@ const updateBlog = asyncHandler(async (req, res) => {
       throw new ApiError(404, "blog dose not exists");
     }
 
-    const newThumbnailLocalPath =
-      req.files?.thumbnail && req.files?.thumbnail[0]?.path;
-
-    // if (!thumbnailLocalPath) {
-    //   throw new ApiError(400, "Thumbnail are required to publish a blog");
-    // }
+    const newThumbnailLocalPath = req.file?.path;
 
     const updatedBlogData = {};
     if (content) {
@@ -107,14 +99,9 @@ const updateBlog = asyncHandler(async (req, res) => {
       updatedBlogData.title = title;
     }
 
-    if (newTags && Array.isArray(newTags)) {
-      const updatedTag = Array.from([...blog.tag, ...newTags]);
-      updatedBlogData.tag = updatedTag;
-    }
-
     if (newThumbnailLocalPath) {
       const oldThumbnailUrl = blog.thumbnail;
-      const updatedThumbnail = await uploadOnCloudinary(thumbnailLocalPath);
+      const updatedThumbnail = await uploadOnCloudinary(newThumbnailLocalPath);
       updatedBlogData.thumbnail = updatedThumbnail.url;
       await deleteFileOnCloudinary(oldThumbnailUrl, "image");
     }
@@ -162,7 +149,7 @@ const deleteBlog = asyncHandler(async (req, res) => {
   */
   try {
     const userId = req.user?.id;
-    const blogId = parseInt(req.params, 10);
+    const blogId = parseInt(req.params.blogId);
 
     const blog = await prisma.blog.findFirst({
       where: {
@@ -193,9 +180,15 @@ const deleteBlog = asyncHandler(async (req, res) => {
         ownerId: userId,
       },
     });
-    return res
-      .status(200)
-      .json(new ApiResponse(200, {}, "Succesfully Deleted The Blog"));
+    return res.status(200).json(
+      new ApiResponse(
+        200,
+        {
+          deletd: true,
+        },
+        "Succesfully Deleted The Blog"
+      )
+    );
   } catch (error) {
     throw new ApiError(500, error?.message);
   }
@@ -335,39 +328,6 @@ const getBlogById = asyncHandler(async (req, res) => {
   }
 });
 
-const getBlogsByTag = asyncHandler(async (req, res) => {
-  try {
-    const { page = 1, limit = 10 } = req.query;
-    const { tag } = req.params;
-
-    const blogs = await prisma.blog.findMany({
-      where: {
-        isPublished: true,
-        tag: {
-          has: tag,
-        },
-      },
-      skip: page,
-      take: limit,
-      orderBy: {
-        createdAt: "desc",
-      },
-    });
-
-    if (!blogs) {
-      throw new ApiError(404, "No blog found by this tag");
-    }
-
-    return res
-      .status(200)
-      .json(
-        new ApiResponse(200, blogs, "Succesfulyy fetched the blog by tags")
-      );
-  } catch (error) {
-    throw new ApiError(500, error?.message);
-  }
-});
-
 const togglePublishStatus = asyncHandler(async (req, res) => {
   try {
     const blogId = parseInt(req.params.blogId, 10);
@@ -422,6 +382,5 @@ export {
   getMyBlogs,
   getBookMarkedPosts,
   getBlogById,
-  getBlogsByTag,
   togglePublishStatus,
 };

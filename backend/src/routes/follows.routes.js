@@ -11,9 +11,9 @@ const router = Router();
 
 router.use(verifyJwt);
 
-router.route("/:authorId").post(toggleFollow);
+router.route("/page/:pageId").post(toggleFollow).get(getUserFollowerList);
 
-router.route("/list/followers").get(getUserFollowerList);
-router.route("/list/following").get(getUserFollowingList);
+// router.route("/list/followers/:pageId").get(getUserFollowerList);;
+router.route("/user/:followerId").get(getUserFollowingList);
 
 export default router;
