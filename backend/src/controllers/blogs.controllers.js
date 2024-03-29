@@ -215,97 +215,6 @@ const getAllBlogs = asyncHandler(async (req, res) => {
   }
 });
 
-const getAllBlogsByUsername = asyncHandler(async (req, res) => {
-  try {
-    const { page = 1, limit = 10 } = req.query;
-
-    const { username } = req.params;
-
-    const author = await prisma.user.findUnique({
-      where: {
-        username,
-      },
-    });
-
-    if (!author) {
-      throw new ApiError(
-        404,
-        "Author/Username" + username + " dose not exist "
-      );
-    }
-
-    const authorId = author.id;
-    const blogs = await prisma.blog.findMany({
-      where: {
-        ownerId: authorId,
-        isPublished: true,
-      },
-
-      skip: page,
-      take: limit,
-    });
-
-    return res
-      .status(200)
-      .json(new ApiResponse(200, blogs, "Succesfuly Fetched users blog"));
-  } catch (error) {
-    throw new ApiError(500, error?.message);
-  }
-});
-
-const getMyBlogs = asyncHandler(async (req, res) => {
-  try {
-    const userId = req.user?.id;
-    const { page = 1, limit = 10 } = req.params;
-
-    const myBlogs = await prisma.blog.findMany({
-      where: {
-        ownerId: userId,
-      },
-    });
-
-    return res
-      .status(200)
-      .json(
-        new ApiResponse(200, myBlogs, "Succesfully Fetched All Blogs By User")
-      );
-  } catch (error) {
-    throw new ApiError(500, error?.message);
-  }
-});
-
-const getBookMarkedPosts = asyncHandler(async (req, res) => {
-  try {
-    const { page = 1, limit = 10 } = req.query;
-
-    const userId = req.user?.id;
-
-    const bookMarkedblogs = await prisma.bookmark.findMany({
-      where: {
-        bookmarkedBy: userId,
-      },
-    });
-
-    if (!bookMarkedblogs) {
-      return res
-        .status(200)
-        .json(new ApiResponse(200, [], "No Bookemarked Blog Found"));
-    }
-
-    return res
-      .status(200)
-      .json(
-        new ApiResponse(
-          200,
-          bookMarkedblogs,
-          "Succesfully Fetched The Bookmarked Blogs"
-        )
-      );
-  } catch (error) {
-    throw new ApiError(500, error?.message);
-  }
-});
-
 const getBlogById = asyncHandler(async (req, res) => {
   try {
     const blogId = parseInt(req.params, 10);
@@ -367,6 +276,99 @@ const togglePublishStatus = asyncHandler(async (req, res) => {
       .status(200)
       .json(
         new ApiResponse(200, updatedBlog, "Publish status toggled successfully")
+      );
+  } catch (error) {
+    throw new ApiError(500, error?.message);
+  }
+});
+
+const getBookMarkedPosts = asyncHandler(async (req, res) => {
+  try {
+    const { page = 1, limit = 10 } = req.query;
+
+    const userId = req.user?.id;
+
+    const bookMarkedblogs = await prisma.bookmark.findMany({
+      where: {
+        bookmarkedBy: userId,
+      },
+    });
+
+    if (!bookMarkedblogs) {
+      return res
+        .status(200)
+        .json(new ApiResponse(200, [], "No Bookemarked Blog Found"));
+    }
+
+    return res
+      .status(200)
+      .json(
+        new ApiResponse(
+          200,
+          bookMarkedblogs,
+          "Succesfully Fetched The Bookmarked Blogs"
+        )
+      );
+  } catch (error) {
+    throw new ApiError(500, error?.message);
+  }
+});
+
+//--------------------------------------------------------------------------------------------------------------
+
+const getAllBlogsByUsername = asyncHandler(async (req, res) => {
+  try {
+    const { page = 1, limit = 10 } = req.query;
+
+    const { username } = req.params;
+
+    const author = await prisma.user.findUnique({
+      where: {
+        username,
+      },
+    });
+
+    if (!author) {
+      throw new ApiError(
+        404,
+        "Author/Username" + username + " dose not exist "
+      );
+    }
+
+    const authorId = author.id;
+    const blogs = await prisma.blog.findMany({
+      where: {
+        ownerId: authorId,
+        isPublished: true,
+      },
+
+      skip: page,
+      take: limit,
+    });
+
+    return res
+      .status(200)
+      .json(new ApiResponse(200, blogs, "Succesfuly Fetched users blog"));
+  } catch (error) {
+    throw new ApiError(500, error?.message);
+  }
+});
+
+const getMyBlogs = asyncHandler(async (req, res) => {
+  try {
+    const userId = req.user?.id;
+    const { page = 1, limit = 10 } = req.params;
+
+    const myBlogs = await prisma.blog.findMany({
+      where: {
+        ownerId: userId,
+      },
+    });
+
+    return res
+      .status(200)
+      .json(
+        new ApiResponse(200, myBlogs, "Succesfully Fetched All Blogs By User")
       );
   } catch (error) {
     throw new ApiError(500, error?.message);

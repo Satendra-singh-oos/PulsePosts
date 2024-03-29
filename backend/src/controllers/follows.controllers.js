@@ -67,54 +67,56 @@ const toggleFollow = asyncHandler(async (req, res) => {
   }
 });
 
+//controller to return follower list of a author
 const getUserFollowerList = asyncHandler(async (req, res) => {
   /*
  Return The List of follower
- - total follower count
+ - your follower data like username fullname ,avatar, and there total follower also do you follow him
  - 
 */
   try {
     const userId = req.user?.id;
     const { pageId } = req.params;
-    const authorId = parseInt(pageId, 10);
+    const channelId = parseInt(pageId, 10);
 
     const followerList = await prisma.follow.findMany({
       where: {
-        authorId: authorId,
+        followerId: channelId,
       },
       include: {
-        author: true,
-        follower: {
+        // author: true,
+        author: {
           select: {
             id: true,
             username: true,
             fullname: true,
             avatar: true,
-            followers: true,
+            follows: true,
           },
         },
       },
     });
 
     // Perform post-processing to calculate isCurrentUserFollow and totalFollowers for each follower
-    const formattedFollowers = followerList.map(({ id, follower, author }) => {
-      const isCurrentUserFollow = follower.followers.some(
-        (follow) => follow.authorId === userId
-      );
+    const formattedFollowers = followerList.map(({ id, author }) => {
+      // total follower of the follower
+      const followerCounts = author.follows.length;
 
-      const totalFollowers = follower.followers.length;
+      // check is current user who is looking into this is followed them or not
+      //TODO: FIX THIS
+      const followedtoFollower = author.follows.some(
+        (followe) => followe.followerId === userId
+      );
 
       return {
         id: id,
-        author: author.id,
-        authorName: author.username,
         follower: {
-          id: follower.id,
-          username: follower.username,
-          fullname: follower.fullname,
-          avatar: follower.avatar,
-          isCurrentUserFollow: isCurrentUserFollow,
-          totalFollowers: totalFollowers,
+          id: author.id,
+          username: author.username,
+          fullname: author.fullname,
+          avatar: author.avatar,
+          followerCounts: followerCounts,
+          // followedtoFollower: followedtoFollower,
         },
       };
     });
@@ -133,7 +135,14 @@ const getUserFollowerList = asyncHandler(async (req, res) => {
   }
 });
 
+// people who i follow
 const getUserFollowingList = asyncHandler(async (req, res) => {
+  /*
+    Return The List of pepole who you follow
+ - followed channel data like username fullname ,avatar,  object of those follower
+ this api is for the 
+ - 
+*/
   try {
     const userId = req.user?.id;
     const { followerId } = req.params;
@@ -158,7 +167,7 @@ const getUserFollowingList = asyncHandler(async (req, res) => {
     const formattedFollow = followingList.map(({ id, author }) => {
       return {
         id: id,
-        author: {
+        followedAuthor: {
           id: author.id,
           username: author.username,
           fullname: author.username,
