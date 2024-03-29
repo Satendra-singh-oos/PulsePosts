@@ -5,55 +5,48 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 
 const toggleBlogLike = asyncHandler(async (req, res) => {
   try {
-    const { blogId } = parseInt(req.params, 10);
+    const blogId = parseInt(req.params.blogId, 10);
     const userId = req.user?.id;
 
     const isBlogAlreadyLiked = await prisma.like.findFirst({
       where: {
-        blogId: blogId,
-        AND: {
-          likedById: userId,
-        },
+        AND: [{ blogId: blogId }, { likedById: userId }],
       },
     });
 
     if (isBlogAlreadyLiked) {
-      await prisma.like.delete({
+      await prisma.like.deleteMany({
         where: {
-          blogId: blogId,
-          AND: {
-            likedById: userId,
-          },
+          AND: [{ blogId: blogId }, { likedById: userId }],
         },
       });
 
-      return res.statue(200).json(
+      return res.status(200).json(
         new ApiResponse(
           200,
           {
             isLiked: false,
           },
-          "Un-Liked successfully"
-        )
-      );
-    } else {
-      await prisma.like.create({
-        data: {
-          blogId: blogId,
-          likedById: userId,
-        },
-      });
-
-      return res.statue(200).json(
-        new ApiResponse(
-          200,
-          {
-            isLiked: true,
-          },
-          "Liked successfully"
+          "Un-Liked Blog Successfully"
         )
       );
     }
+    await prisma.like.create({
+      data: {
+        blogId: blogId,
+        likedById: userId,
+      },
+    });
+
+    return res.status(200).json(
+      new ApiResponse(
+        200,
+        {
+          isLiked: true,
+        },
+        "Liked BLog Successfully"
+      )
+    );
   } catch (error) {
     throw new ApiError(500, error?.message);
   }
@@ -61,25 +54,19 @@ const toggleBlogLike = asyncHandler(async (req, res) => {
 
 const togleCommentLike = asyncHandler(async (req, res) => {
   try {
-    const { commentId } = parseInt(req.params, 10);
+    const commentId = parseInt(req.params?.commentId, 10);
     const userId = req.user?.id;
 
     const isCommentAlreadyLiked = await prisma.like.findFirst({
       where: {
-        commentId: commentId,
-        AND: {
-          likedById: userId,
-        },
+        AND: [{ commentId: commentId }, { likedById: userId }],
       },
     });
 
     if (isCommentAlreadyLiked) {
-      await prisma.like.delete({
+      await prisma.like.deleteMany({
         where: {
-          commentId: commentId,
-          AND: {
-            likedById: userId,
-          },
+          AND: [{ commentId: commentId }, { likedById: userId }],
         },
       });
 
@@ -89,7 +76,7 @@ const togleCommentLike = asyncHandler(async (req, res) => {
           {
             isLiked: false,
           },
-          "Un-Liked successfully"
+          "Un-Liked Comment successfully"
         )
       );
     } else {
@@ -106,7 +93,7 @@ const togleCommentLike = asyncHandler(async (req, res) => {
           {
             isLiked: true,
           },
-          "Liked successfully"
+          "Liked Comment Successfully"
         )
       );
     }
@@ -123,18 +110,29 @@ const getLikedBlogs = asyncHandler(async (req, res) => {
       where: {
         likedById: userId,
       },
-      // select: {
-      //   blog:{
-      //     where:{
-      //         isPublished:true
-      //     }
-      //   },
-      // },
+      select: {
+        blog: {
+          where: {
+            isPublished: true,
+          },
+          include: {
+            owner: {
+              select: {
+                id: true,
+                username: true,
+                avatar: true,
+              },
+            },
+          },
+        },
+      },
     });
 
+    const filteredLikedBlogs = likedBlog.filter((item) => item.blog !== null);
+
     return res
-      .statue(200)
-      .json(new ApiResponse(200, likedBlog, "Fetched All Liked Blog"));
+      .status(200)
+      .json(new ApiResponse(200, filteredLikedBlogs, "Fetched All Liked Blog"));
   } catch (error) {
     throw new ApiError(500, error?.message);
   }

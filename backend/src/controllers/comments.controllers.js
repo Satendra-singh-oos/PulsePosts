@@ -7,9 +7,24 @@ import { commentSchemaValidation } from "../validations/comment.validation.js";
 const addCommnet = asyncHandler(async (req, res) => {
   try {
     const userId = req.user?.id;
-    const { blogId } = parseInt(req.params, 10);
+    const blogId = parseInt(req.params.blogId, 10);
+
+    if (isNaN(blogId)) {
+      // Handle invalid input (blogId is not a valid integer string)
+      throw new ApiError(405, "No A Valid blogId");
+    }
 
     const { content } = commentSchemaValidation.parse(req.body);
+
+    const isBlogPublished = await prisma.blog.findFirst({
+      where: {
+        id: blogId,
+      },
+    });
+
+    if (!isBlogPublished.isPublished) {
+      throw new ApiError(404, "Blog Is Private Or Not Avaliable");
+    }
 
     const comment = await prisma.comment.create({
       data: {
@@ -30,28 +45,50 @@ const addCommnet = asyncHandler(async (req, res) => {
 const updateComment = asyncHandler(async (req, res) => {
   try {
     const userId = req.user?.id;
-    const { blogId } = parseInt(req.params, 10);
+    const commentId = parseInt(req.params.commentId, 10);
+
+    if (isNaN(commentId)) {
+      // Handle invalid input (commentId is not a valid integer string)
+      throw new ApiError(405, "No A Valid commentId");
+    }
 
     const { content } = commentSchemaValidation.parse(req.body);
 
+    const comment = await prisma.comment.findFirst({
+      where: {
+        id: commentId,
+        ownerId: userId,
+      },
+    });
+
+    if (!comment) {
+      throw new ApiError(
+        404,
+        "No Commnet found || You are not authorized to update this comment"
+      );
+    }
+
+    const blogId = comment.blogId;
+
+    const isBlogPublished = await prisma.blog.findFirst({
+      where: {
+        id: blogId,
+        isPublished: true,
+      },
+    });
+    if (!isBlogPublished) {
+      throw new ApiError(404, "Blog Is Private Or Not Avaliable");
+    }
+
     const updatedComment = await prisma.comment.update({
       where: {
-        blogId: blogId,
-        AND: {
-          ownerId: userId,
-        },
+        id: commentId,
+        ownerId: userId,
       },
       data: {
         content: content,
       },
     });
-
-    if (!updatedComment) {
-      throw new ApiError(
-        404,
-        "Comment does not exist or you are not authorized for this action."
-      );
-    }
 
     return res
       .status(200)
@@ -59,21 +96,19 @@ const updateComment = asyncHandler(async (req, res) => {
         new ApiResponse(200, updatedComment, "Comment updated successfully")
       );
   } catch (error) {
-    new ApiError(500, error?.message);
+    throw new ApiError(500, error?.message);
   }
 });
 
 const deleteComment = asyncHandler(async (req, res) => {
   try {
     const userId = req.user?.id;
-    const { blogId } = parseInt(req.params, 10);
+    const commentId = parseInt(req.params.commentId, 10);
 
     const checkCommentIsThere = await prisma.comment.findFirst({
       where: {
-        blogId: blogId,
-        AND: {
-          ownerId: userId,
-        },
+        id: commentId,
+        ownerId: userId,
       },
     });
 
@@ -84,19 +119,21 @@ const deleteComment = asyncHandler(async (req, res) => {
       );
     }
 
-    const deletedComment = await prisma.comment.delete({
+    await prisma.comment.delete({
       where: {
-        blogId: blogId,
-        AND: {
-          ownerId: ownerId,
-        },
+        id: commentId,
+        ownerId: userId,
       },
     });
 
     return res
       .status(200)
       .json(
-        new ApiResponse(200, { deletedComment }, "Comment deleted successfully")
+        new ApiResponse(
+          200,
+          { commentId, isDeleted: true },
+          "Comment deleted successfully"
+        )
       );
   } catch (error) {
     throw new ApiError(500, error?.message);
@@ -106,8 +143,8 @@ const deleteComment = asyncHandler(async (req, res) => {
 const getBlogComments = asyncHandler(async (req, res) => {
   try {
     const userId = req.user?.id;
-    const { blogId } = parseInt(req.params, 10);
-    const { page = 1, limit = 10 } = req.query;
+    const blogId = parseInt(req.params.blogId, 10);
+    const { page = 0, limit = 10 } = req.query;
 
     const blogComments = await prisma.comment.findMany({
       where: {

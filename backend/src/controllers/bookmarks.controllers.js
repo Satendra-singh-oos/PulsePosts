@@ -5,25 +5,24 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 
 const toggleBookmark = asyncHandler(async (req, res) => {
   try {
-    const { blogId } = parseInt(req.params, 10);
+    const blogId = parseInt(req.params.blogId, 10);
     const userId = req.user?.id;
+
+    if (isNaN(blogId)) {
+      // Handle invalid input (blogId is not a valid integer string)
+      throw new ApiError(405, "No A Valid blogId");
+    }
 
     const isBlogAlreadyBookmarked = await prisma.bookmark.findFirst({
       where: {
-        blogId: blogId,
-        AND: {
-          bookmarkedBy: userId,
-        },
+        AND: [{ blogId: blogId }, { bookmarkedBy: userId }],
       },
     });
 
     if (isBlogAlreadyBookmarked) {
-      await prisma.bookmark.delete({
+      await prisma.bookmark.deleteMany({
         where: {
-          blogId: blogId,
-          AND: {
-            bookmarkedBy: userId,
-          },
+          AND: [{ blogId: blogId }, { bookmarkedBy: userId }],
         },
       });
 
@@ -36,20 +35,19 @@ const toggleBookmark = asyncHandler(async (req, res) => {
             "Removed From Bookmarked"
           )
         );
-    } else {
-      await prisma.bookmark.create({
-        data: {
-          bookmarkedBy: userId,
-          blogId: blogId,
-        },
-      });
-
-      return res
-        .status(200)
-        .json(
-          new ApiResponse(200, { isBookemarked: true }, "Added To Bookmarked")
-        );
     }
+    await prisma.bookmark.create({
+      data: {
+        blogId: blogId,
+        bookmarkedBy: userId,
+      },
+    });
+
+    return res
+      .status(200)
+      .json(
+        new ApiResponse(200, { isBookemarked: true }, "Added To Bookmarked")
+      );
   } catch (error) {
     throw new ApiError(500, error?.message);
   }
@@ -65,10 +63,10 @@ const getAllBookmarkedBlog = asyncHandler(async (req, res) => {
       },
     });
 
-    if (!blog) {
+    if (!bookmarkedBlogs) {
       return res
         .status(200)
-        .json(new ApiResponse(200, {}, "No Bookmarked Found"));
+        .json(new ApiResponse(200, [], "No Bookmarked Found"));
     }
 
     return res

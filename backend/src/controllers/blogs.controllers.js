@@ -81,11 +81,15 @@ const updateBlog = asyncHandler(async (req, res) => {
       where: {
         id: blogId,
         ownerId: userId,
+        isPublished: true,
       },
     });
 
     if (!blog) {
-      throw new ApiError(404, "blog dose not exists");
+      throw new ApiError(
+        404,
+        "Blog Dose Not Exists || You ARe Not Authorized To Edit This Blog"
+      );
     }
 
     const newThumbnailLocalPath = req.file?.path;
@@ -408,13 +412,18 @@ const getBlogById = asyncHandler(async (req, res) => {
     if (!blog) {
       throw new ApiError(404, "No Blog Found By This Id");
     }
+    // Increment the views count
+    await prisma.blog.update({
+      where: { id: blogId },
+      data: { views: { increment: 1 } },
+    });
 
     // const formatedData = {
     //   id: blog?.id,
     //   thumbnail: blog?.thumbnail,
     //   title: blog?.title,
     //   content: blog?.content,
-    //   views: blog?.views || 0,
+    //   views: blog?.views + 1 || 0,
     //   isPublished: blog?.isPublished,
     //   ownerId: blog?.ownerId,
     //   createdAt: blog?.createdAt,
