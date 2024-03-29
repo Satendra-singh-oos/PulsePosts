@@ -5,9 +5,6 @@ import {
   updateBlog,
   deleteBlog,
   getAllBlogs,
-  getAllBlogsByUsername,
-  getMyBlogs,
-  getBookMarkedPosts,
   getBlogById,
   togglePublishStatus,
 } from "../controllers/blogs.controllers.js";
@@ -17,8 +14,6 @@ const router = Router();
 // router.use(verifyJwt);
 
 router.route("/").get(getAllBlogs);
-
-router.route("/get/u/:username").get(getAllBlogsByUsername);
 
 // restricted route
 router
@@ -31,9 +26,5 @@ router
   .patch(verifyJwt, upload.single("thumbnail"), updateBlog);
 
 router.route("/toggle/publish/:blogId").patch(verifyJwt, togglePublishStatus);
-
-router.route("/get/myBlogs").get(verifyJwt, getMyBlogs);
-
-router.route("/get/bookmarked").get(verifyJwt, getBookMarkedPosts);
 
 export default router;

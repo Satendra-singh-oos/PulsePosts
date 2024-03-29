@@ -51,6 +51,7 @@ import followRouter from "./routes/follows.routes.js";
 import likesRouter from "./routes/likes.routes.js";
 import bookmarksRouter from "./routes/bookmarks.routes.js";
 import commentsRouter from "./routes/comments.routes.js";
+import dashboardRouter from "./routes/dashboard.routes.js";
 
 app.use("/api/v1/healthcheck", healthcheckRouter);
 
@@ -60,5 +61,6 @@ app.use("/api/v1/follows", followRouter);
 app.use("/api/v1/likes", likesRouter);
 app.use("/api/v1/bookmarks", bookmarksRouter);
 app.use("/api/v1/comments", commentsRouter);
+app.use("/api/v1/dashboard", dashboardRouter);
 
 export { app };

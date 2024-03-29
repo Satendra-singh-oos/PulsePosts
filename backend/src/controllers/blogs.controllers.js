@@ -194,81 +194,30 @@ const deleteBlog = asyncHandler(async (req, res) => {
   }
 });
 
-const getAllBlogs = asyncHandler(async (req, res) => {
-  try {
-    const { page = 1, limit = 10 } = req.query;
-    const allBlogs = await prisma.blog.findMany({
-      where: {
-        isPublished: true,
-      },
-      skip: page,
-      take: limit,
-    });
-
-    return res
-      .status(200)
-      .json(
-        new ApiResponse(200, allBlogs, "SUccesfully Fetched All The Blogs")
-      );
-  } catch (error) {
-    throw new ApiError(500, error?.message);
-  }
-});
-
-const getBlogById = asyncHandler(async (req, res) => {
-  try {
-    const blogId = parseInt(req.params, 10);
-
-    const blog = await prisma.blog.findFirst({
-      where: {
-        id: blogId,
-      },
-    });
-
-    if (!blog) {
-      throw new ApiError(404, "No Blog Found By This Id");
-    }
-
-    return res
-      .status(200)
-      .json(new ApiResponse(200, blog, "Succesfully fetched blog"));
-  } catch (error) {
-    throw new ApiError(500, error?.message);
-  }
-});
-
 const togglePublishStatus = asyncHandler(async (req, res) => {
   try {
     const blogId = parseInt(req.params.blogId, 10);
 
     const userId = req.user?.id;
 
-    const user = await prisma.user.findFirst({
-      where: {
-        id: userId,
-      },
-    });
-
-    if (!user) {
-      throw new ApiError(404, "User not found");
-    }
-
     const blog = await prisma.blog.findFirst({
       where: {
         id: blogId,
       },
     });
 
-    if (!blog) {
-      throw new ApiError(404, "Blog not found");
+    if (blog.ownerId != userId) {
+      throw new ApiError(404, "You Are Not Authorized to edit this blog");
     }
+
+    const togglePublised = !blog.isPublished;
 
     const updatedBlog = await prisma.blog.update({
       where: {
         id: blogId,
       },
       data: {
-        isPublished: !blog.isPublished,
+        isPublished: togglePublised,
       },
     });
 
@@ -282,94 +231,203 @@ const togglePublishStatus = asyncHandler(async (req, res) => {
   }
 });
 
-const getBookMarkedPosts = asyncHandler(async (req, res) => {
+const getAllBlogs = asyncHandler(async (req, res) => {
   try {
-    const { page = 1, limit = 10 } = req.query;
+    const { page = 0, limit = 10, query, userId, sortBy, sortType } = req.query;
 
-    const userId = req.user?.id;
+    const options = {
+      page: parseInt(page, 10),
+      limit: parseInt(limit, 10),
+    };
 
-    const bookMarkedblogs = await prisma.bookmark.findMany({
-      where: {
-        bookmarkedBy: userId,
-      },
-    });
+    const ownerId = parseInt(userId, 10);
 
-    if (!bookMarkedblogs) {
+    if (ownerId) {
+      const allBlogs = await prisma.blog.findMany({
+        where: {
+          ownerId: ownerId,
+          isPublished: true,
+        },
+        include: {
+          owner: true,
+        },
+        skip: options.page,
+        take: options.limit,
+      });
+
+      const formatedData = allBlogs.map((blog) => {
+        const ownerId = blog?.owner?.id;
+        const ownerUsername = blog?.owner?.username;
+        const ownerAvatar = blog?.owner?.avatar;
+
+        return {
+          id: blog.id,
+          thumbnail: blog.thumbnail,
+          title: blog.title,
+          content: blog.content,
+          views: blog.views || 0,
+          isPublished: blog.isPublished,
+          owner: blog.ownerId,
+          createdAt: blog.createdAt,
+          authorInfo: {
+            id: ownerId,
+            username: ownerUsername,
+            avatar: ownerAvatar,
+          },
+        };
+      });
+
       return res
         .status(200)
-        .json(new ApiResponse(200, [], "No Bookemarked Blog Found"));
+        .json(
+          new ApiResponse(
+            200,
+            formatedData,
+            "Successfully Fetched The Blog By The Querey"
+          )
+        );
     }
 
-    return res
-      .status(200)
-      .json(
-        new ApiResponse(
-          200,
-          bookMarkedblogs,
-          "Succesfully Fetched The Bookmarked Blogs"
-        )
-      );
-  } catch (error) {
-    throw new ApiError(500, error?.message);
-  }
-});
+    if (query) {
+      const allBlogs = await prisma.blog.findMany({
+        where: {
+          title: {
+            contains: query,
+          },
+          isPublished: true,
+        },
+        include: {
+          owner: true,
+        },
+        skip: options.page,
+        take: options.limit,
+      });
 
-//--------------------------------------------------------------------------------------------------------------
+      const formatedData = allBlogs.map((blog) => {
+        const ownerId = blog?.owner?.id;
+        const ownerUsername = blog?.owner?.username;
+        const ownerAvatar = blog?.owner?.avatar;
 
-const getAllBlogsByUsername = asyncHandler(async (req, res) => {
-  try {
-    const { page = 1, limit = 10 } = req.query;
+        return {
+          id: blog.id,
+          thumbnail: blog.thumbnail,
+          title: blog.title,
+          content: blog.content,
+          views: blog.views || 0,
+          isPublished: blog.isPublished,
+          owner: blog.ownerId,
+          createdAt: blog.createdAt,
+          authorInfo: {
+            id: ownerId,
+            username: ownerUsername,
+            avatar: ownerAvatar,
+          },
+        };
+      });
 
-    const { username } = req.params;
-
-    const author = await prisma.user.findUnique({
-      where: {
-        username,
-      },
-    });
-
-    if (!author) {
-      throw new ApiError(
-        404,
-        "Author/Username" + username + " dose not exist "
-      );
+      return res
+        .status(200)
+        .json(
+          new ApiResponse(
+            200,
+            formatedData,
+            "Successfully Fetched The Blog By The Querey"
+          )
+        );
     }
-
-    const authorId = author.id;
-    const blogs = await prisma.blog.findMany({
+    const allBlogs = await prisma.blog.findMany({
       where: {
-        ownerId: authorId,
         isPublished: true,
       },
-
-      skip: page,
-      take: limit,
+      include: {
+        owner: true,
+      },
+      skip: options.page,
+      take: options.limit,
     });
 
-    return res
-      .status(200)
-      .json(new ApiResponse(200, blogs, "Succesfuly Fetched users blog"));
-  } catch (error) {
-    throw new ApiError(500, error?.message);
-  }
-});
+    const formatedData = allBlogs.map((blog) => {
+      const ownerId = blog?.owner?.id;
+      const ownerUsername = blog?.owner?.username;
+      const ownerAvatar = blog?.owner?.avatar;
 
-const getMyBlogs = asyncHandler(async (req, res) => {
-  try {
-    const userId = req.user?.id;
-    const { page = 1, limit = 10 } = req.params;
-
-    const myBlogs = await prisma.blog.findMany({
-      where: {
-        ownerId: userId,
-      },
+      return {
+        id: blog.id,
+        thumbnail: blog.thumbnail,
+        title: blog.title,
+        content: blog.content,
+        views: blog.views || 0,
+        isPublished: blog.isPublished,
+        owner: blog.ownerId,
+        createdAt: blog.createdAt,
+        authorInfo: {
+          id: ownerId,
+          username: ownerUsername,
+          avatar: ownerAvatar,
+        },
+      };
     });
 
     return res
       .status(200)
       .json(
-        new ApiResponse(200, myBlogs, "Succesfully Fetched All Blogs By User")
+        new ApiResponse(200, formatedData, "Succesfully Fetched All The Blogs")
       );
+  } catch (error) {
+    throw new ApiError(500, error?.message);
+  }
+});
+
+// TODO: Update after like comment bookmarks api done
+const getBlogById = asyncHandler(async (req, res) => {
+  try {
+    const blogId = parseInt(req.params.blogId, 10);
+
+    const blog = await prisma.blog.findFirst({
+      where: {
+        id: blogId,
+        isPublished: true,
+      },
+      include: {
+        owner: {
+          include: {
+            // follows: {
+            //   select: {
+            //     authorId: true,
+            //   },
+            // },
+            follows: true,
+          },
+        },
+        likes: true,
+        comment: true,
+        bookmarks: true,
+      },
+    });
+
+    if (!blog) {
+      throw new ApiError(404, "No Blog Found By This Id");
+    }
+
+    // const formatedData = {
+    //   id: blog?.id,
+    //   thumbnail: blog?.thumbnail,
+    //   title: blog?.title,
+    //   content: blog?.content,
+    //   views: blog?.views || 0,
+    //   isPublished: blog?.isPublished,
+    //   ownerId: blog?.ownerId,
+    //   createdAt: blog?.createdAt,
+    //   authorInfo: {
+    //     id: blog?.owner?.id,
+    //     username: blog?.owner?.username,
+    //     avatar: blog?.owner?.avatar,
+    //   },
+    // };
+
+    return res
+      .status(200)
+      .json(new ApiResponse(200, blog, "Succesfully fetched blog"));
   } catch (error) {
     throw new ApiError(500, error?.message);
   }
@@ -380,9 +438,6 @@ export {
   updateBlog,
   deleteBlog,
   getAllBlogs,
-  getAllBlogsByUsername,
-  getMyBlogs,
-  getBookMarkedPosts,
   getBlogById,
   togglePublishStatus,
 };
