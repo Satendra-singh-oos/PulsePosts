@@ -51,16 +51,16 @@ const getProfileStats = asyncHandler(async (req, res) => {
     });
 
     const formatedData = {
-      id: profileStatus.id,
-      username: profileStatus.username,
-      fullname: profileStatus.fullname,
-      avatar: profileStatus.avatar,
-      coverImage: profileStatus.coverImage,
-      totalBlogs: profileStatus.blogs.length,
+      id: profileStatus?.id,
+      username: profileStatus?.username,
+      fullname: profileStatusv.fullname,
+      avatar: profileStatus?.avatar,
+      coverImage: profileStatus?.coverImage,
+      totalBlogs: profileStatus?.blogs.length,
       totalLikes: totalLikes,
       totalViews: totalViews,
-      totalFollower: profileStatus.follows.length,
-      totalauthorFollowedTo: profileStatus.followers.length,
+      totalFollower: profileStatus?.follows.length,
+      totalauthorFollowedTo: profileStatus?.followers.length,
     };
 
     return res
@@ -106,18 +106,18 @@ const getProfileBlogs = asyncHandler(async (req, res) => {
     const formatedData = allBlogs.map((blog) => {
       const dateObject = new Date(blog.createdAt);
       return {
-        id: blog.id,
-        thumbnail: blog.thumbnail,
-        title: blog.title,
-        content: blog.content,
-        views: blog.views || 0,
-        isPublished: blog.isPublished,
+        id: blog?.id,
+        thumbnail: blog?.thumbnail,
+        title: blog?.title,
+        content: blog?.content,
+        views: blog?.views || 0,
+        isPublished: blog?.isPublished,
         createdAt: {
           year: dateObject.getFullYear(),
           month: dateObject.getMonth() + 1,
           day: dateObject.getDate(),
         },
-        totalLikes: blog.likes.length,
+        totalLikes: blog?.likes.length,
       };
     });
 

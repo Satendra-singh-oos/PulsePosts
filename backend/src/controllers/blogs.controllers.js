@@ -386,6 +386,7 @@ const getAllBlogs = asyncHandler(async (req, res) => {
 const getBlogById = asyncHandler(async (req, res) => {
   try {
     const blogId = parseInt(req.params.blogId, 10);
+    const userId = req.user?.id;
 
     const blog = await prisma.blog.findFirst({
       where: {
@@ -418,26 +419,38 @@ const getBlogById = asyncHandler(async (req, res) => {
       data: { views: { increment: 1 } },
     });
 
-    // const formatedData = {
-    //   id: blog?.id,
-    //   thumbnail: blog?.thumbnail,
-    //   title: blog?.title,
-    //   content: blog?.content,
-    //   views: blog?.views + 1 || 0,
-    //   isPublished: blog?.isPublished,
-    //   ownerId: blog?.ownerId,
-    //   createdAt: blog?.createdAt,
-    //   authorInfo: {
-    //     id: blog?.owner?.id,
-    //     username: blog?.owner?.username,
-    //     avatar: blog?.owner?.avatar,
-    //   },
-    // };
+    const isUserFollowed = blog.owner.follows.some(
+      (follow) => userId === follow.followerId
+    );
+
+    const isUserLiked = blog.likes.some((like) => userId === like.likedById);
+
+    const formatedData = {
+      id: blog?.id,
+      thumbnail: blog?.thumbnail,
+      title: blog?.title,
+      content: blog?.content,
+      views: blog?.views + 1 || 0,
+      isPublished: blog?.isPublished,
+      ownerId: blog?.ownerId,
+      createdAt: blog?.createdAt,
+      authorInfo: {
+        id: blog?.owner?.id,
+        username: blog?.owner?.username,
+        avatar: blog?.owner?.avatar,
+      },
+      followersCount: blog?.owner?.follows.length,
+      isUserFollowed: isUserFollowed,
+      totalLikes: blog.likes.length,
+      isUserLiked: isUserLiked,
+      totalComments: blog.comment.length,
+    };
 
     return res
       .status(200)
-      .json(new ApiResponse(200, blog, "Succesfully fetched blog"));
+      .json(new ApiResponse(200, formatedData, "Succesfully fetched blog"));
   } catch (error) {
+    console.log(error);
     throw new ApiError(500, error?.message);
   }
 });
