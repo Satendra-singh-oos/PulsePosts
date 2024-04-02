@@ -560,10 +560,47 @@ const getUserProfile = asyncHandler(async (req, res) => {
     */
 
     const { username } = req.params;
+    const userId = req.user?.id;
     if (!username.trim()) {
       throw new ApiError(400, "username is missing");
     }
     //TODO: LEFT THE API
+
+    const userProfileData = await prisma.user.findFirst({
+      where: {
+        username: username,
+      },
+      include: {
+        follows: true,
+        followers: true,
+      },
+    });
+
+    const isFollowed = userProfileData.follows.some(
+      (follow) => userId === follow.followerId
+    );
+
+    const formatedData = {
+      id: userProfileData.id,
+      username: userProfileData.username,
+      fullname: userProfileData.fullname,
+      email: userProfileData.email,
+      avatar: userProfileData.avatar,
+      coverImage: userProfileData.coverImage,
+      followersCount: userProfileData.follows.length,
+      authorFollowedToCount: userProfileData.followers.length,
+      isFollowed: isFollowed,
+    };
+
+    return res
+      .status(200)
+      .json(
+        new ApiResponse(
+          200,
+          formatedData,
+          "Succcefully Fetched The User Profile"
+        )
+      );
   } catch (error) {
     throw new ApiError(500, error?.message);
   }

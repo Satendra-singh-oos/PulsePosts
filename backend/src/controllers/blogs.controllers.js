@@ -11,8 +11,6 @@ import {
   updateBlogSchemaValidation,
 } from "../validations/blogs.validations.js";
 
-//TODO:EXTRA API MADE REDUCE THOSE GETTALL  BLOG
-
 const publishBlog = asyncHandler(async (req, res) => {
   /*
    1)Get the data from the frontend 
