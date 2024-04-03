@@ -427,6 +427,20 @@ const getBlogById = asyncHandler(async (req, res) => {
       },
     });
 
+    const chachedData = await client.get(`blog:${blogId}`);
+
+    if (chachedData) {
+      return res
+        .status(200)
+        .json(
+          new ApiResponse(
+            200,
+            JSON.parse(chachedData),
+            "Succesfully fetched blog"
+          )
+        );
+    }
+
     if (!blog) {
       throw new ApiError(404, "No Blog Found By This Id");
     }
@@ -462,6 +476,9 @@ const getBlogById = asyncHandler(async (req, res) => {
       isUserLiked: isUserLiked,
       totalComments: blog.comment.length,
     };
+
+    await client.set(`blog:${formatedData.id}`, JSON.stringify(formatedData));
+    await client.expire(`blog:${formatedData.id}`, 7200);
 
     return res
       .status(200)
