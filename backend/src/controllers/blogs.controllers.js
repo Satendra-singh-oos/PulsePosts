@@ -1,4 +1,5 @@
 import prisma from "../../prisma/prisma.js";
+import { client } from "../app.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
@@ -35,8 +36,6 @@ const publishBlog = asyncHandler(async (req, res) => {
     if (!thumbnail.url) {
       throw new ApiError(404, "Something Went Wrong ON Uplaoding Thumbnail");
     }
-
-    console.log(tag);
 
     const newBlog = await prisma.blog.create({
       data: {
@@ -327,6 +326,8 @@ const getAllBlogs = asyncHandler(async (req, res) => {
         };
       });
 
+      console.log("first time typeOf" + typeof formatedData);
+
       return res
         .status(200)
         .json(
@@ -337,6 +338,21 @@ const getAllBlogs = asyncHandler(async (req, res) => {
           )
         );
     }
+
+    const chachedData = await client.get("blogs");
+
+    if (chachedData) {
+      return res
+        .status(200)
+        .json(
+          new ApiResponse(
+            200,
+            JSON.parse(chachedData),
+            "Succesfully Fetched All The Blogs"
+          )
+        );
+    }
+
     const allBlogs = await prisma.blog.findMany({
       where: {
         isPublished: true,
@@ -369,6 +385,9 @@ const getAllBlogs = asyncHandler(async (req, res) => {
         },
       };
     });
+
+    await client.set("blogs", JSON.stringify(formatedData));
+    await client.expire("blogs", 40000);
 
     return res
       .status(200)

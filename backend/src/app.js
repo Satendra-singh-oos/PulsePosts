@@ -4,6 +4,7 @@ import cookieParser from "cookie-parser";
 import { rateLimit } from "express-rate-limit";
 import requestIp from "request-ip";
 import { ApiError } from "./utils/ApiError.js";
+import { createClient } from "redis";
 
 const app = express();
 
@@ -43,6 +44,16 @@ app.use(express.static("public"));
 
 app.use(cookieParser());
 
+const client = await createClient({
+  password: process.env.REDIS_PASSWORD,
+  socket: {
+    host: process.env.REDIS_HOST,
+    port: process.env.REDIS_PORT,
+  },
+});
+
+await client.connect();
+
 //router Import
 import healthcheckRouter from "./routes/healthcheck.routes.js";
 import userRouter from "./routes/users.routes.js";
@@ -63,4 +74,4 @@ app.use("/api/v1/bookmarks", bookmarksRouter);
 app.use("/api/v1/comments", commentsRouter);
 app.use("/api/v1/dashboard", dashboardRouter);
 
-export { app };
+export { app, client };
